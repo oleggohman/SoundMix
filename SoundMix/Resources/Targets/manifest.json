@@ -1,0 +1,62 @@
+[
+  {
+    "id": "ief-neutral",
+    "name": "IEF / Crinacle Neutral",
+    "file": "ief-neutral.csv"
+  },
+  {
+    "id": "ief-neutral-bass",
+    "name": "IEF / Crinacle Neutral + bass",
+    "file": "ief-neutral-bass.csv"
+  },
+  {
+    "id": "harman-ie-2019",
+    "name": "Harman IE 2019",
+    "file": "harman-ie-2019.csv"
+  },
+  {
+    "id": "hifiendgame-mkiii",
+    "name": "HiFiEndgame MKIII",
+    "file": "hifiendgame-mkiii.csv"
+  },
+  {
+    "id": "ief-preference-2025",
+    "name": "IEF Preference 2025",
+    "file": "ief-preference-2025.csv"
+  },
+  {
+    "id": "jm-1-10db-tilt",
+    "name": "JM-1 -10dB Tilt",
+    "file": "jm-1-10db-tilt.csv"
+  },
+  {
+    "id": "moondrop-vdsf",
+    "name": "Moondrop VDSF",
+    "file": "moondrop-vdsf.csv"
+  },
+  {
+    "id": "peqdb-diamond-beta",
+    "name": "PEQdB Diamond β",
+    "file": "peqdb-diamond-beta.csv"
+  },
+  {
+    "id": "peqdb-hifi",
+    "name": "PEQdB HiFi",
+    "file": "peqdb-hifi.csv"
+  },
+  {
+    "id": "peqdb-ultra",
+    "name": "PEQdB Ultra",
+    "file": "peqdb-ultra.csv"
+  },
+  {
+    "id": "peqdb-equalized-response",
+    "name": "PEQdB-Equalized-Response",
+    "file": "peqdb-equalized-response.csv"
+  },
+  {
+    "id": "peqdb-diffuse-field",
+    "name": "PEQdB-_Diffuse-Field",
+    "file": "peqdb-diffuse-field.csv"
+  }
+]

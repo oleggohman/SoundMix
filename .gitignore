@@ -1,0 +1,29 @@
+# macOS Finder metadata
+.DS_Store
+
+# Temporary Boost hook metadata
+.boost/
+
+# Local memory notes
+MEMORY.md
+PLAN.md
+
+# Generated macOS installers
+SoundMix/dist/
+
+# Build artifacts — the build counter lives in SoundMix/BUILD_NUMBER
+SoundMix/build/
+.build/
+
+# Agent-assistant config, not part of the app
+.agents/
+.claude/
+.codebuddy/
+skills-lock.json
+
+# Local agent instructions, not part of the app
+AGENTS.md
+
+# Stray files from another project (SystemEQ-for-Mac), not part of SoundMix
+INTEGRATION_MANUAL.md
+import_opra.swift

@@ -1,0 +1,86 @@
+[
+  {
+    "file": "ief-neutral.csv",
+    "source": "https://raw.githubusercontent.com/iwalton3/AutoEq/8807b35f861564dbe53dc9dacbc0fa74bb6bb4a4/compensation/ief_neutral_in-ear.csv",
+    "revision": "8807b35f861564dbe53dc9dacbc0fa74bb6bb4a4",
+    "sha256": "a58683a6f04eea3a063d026d9e2d1a1f5f330d536cd82e2cd044b9f6efb824b4",
+    "downloaded": "2026-10-15"
+  },
+  {
+    "file": "ief-neutral-bass.csv",
+    "source": "https://raw.githubusercontent.com/iwalton3/AutoEq/8807b35f861564dbe53dc9dacbc0fa74bb6bb4a4/compensation/ief_neutral_in-ear_with_bass.csv",
+    "revision": "8807b35f861564dbe53dc9dacbc0fa74bb6bb4a4",
+    "sha256": "7b7cef71a900f85ad291fda09a5dc2f915f97fac31bd3db3e11afc9a8a5b5a57",
+    "downloaded": "2026-10-15"
+  },
+  {
+    "file": "harman-ie-2019.csv",
+    "source": "../Targets/Harman IE 2019.txt",
+    "revision": null,
+    "sha256": "86b312c8ca369beedc8192a4cb5a5a001c67df13d009673dfbfdb553cac9b613",
+    "downloaded": null
+  },
+  {
+    "file": "hifiendgame-mkiii.csv",
+    "source": "../Targets/HiFiEndgame MKIII.txt",
+    "revision": null,
+    "sha256": "4590cf963e11762a281bd55fb9a1ebf783f76185d5df254c0bbd5efb2f85ef2f",
+    "downloaded": null
+  },
+  {
+    "file": "ief-preference-2025.csv",
+    "source": "../Targets/IEF Preference 2025.txt",
+    "revision": null,
+    "sha256": "ff9184f806144e6f42fe16869963f49ae8aaf5736cce661b676da0f37585e19d",
+    "downloaded": null
+  },
+  {
+    "file": "jm-1-10db-tilt.csv",
+    "source": "../Targets/JM-1 -10dB Tilt.txt",
+    "revision": null,
+    "sha256": "c53efed8c089fb9f90c2926daa516bde763f8e20c8e38f1bf5b47b6c528dfb9e",
+    "downloaded": null
+  },
+  {
+    "file": "moondrop-vdsf.csv",
+    "source": "../Targets/Moondrop VDSF.txt",
+    "revision": null,
+    "sha256": "d29501512657d4132f5cb025ea723c8f299911230f176b48f0bcd6a14a8bdb60",
+    "downloaded": null
+  },
+  {
+    "file": "peqdb-diamond-beta.csv",
+    "source": "../Targets/PEQdB Diamond β.txt",
+    "revision": null,
+    "sha256": "bfd84cdc0bda1b8a4aea1207317679476c8f2e9ba5c5a0c98563a2c2ecc9c2b7",
+    "downloaded": null
+  },
+  {
+    "file": "peqdb-hifi.csv",
+    "source": "../Targets/PEQdB HiFi.txt",
+    "revision": null,
+    "sha256": "21ab5d012b214fa0e07843f82b4bfd3729b6c7bbb348f5b030c33ec4fe64da64",
+    "downloaded": null
+  },
+  {
+    "file": "peqdb-ultra.csv",
+    "source": "../Targets/PEQdB Ultra.txt",
+    "revision": null,
+    "sha256": "ac8b3fa62375c4d7ebb415fc1dc2be221446c02d6621b195714ead638a2de8cf",
+    "downloaded": null
+  },
+  {
+    "file": "peqdb-equalized-response.csv",
+    "source": "../Targets/PEQdB-Equalized-Response.txt",
+    "revision": null,
+    "sha256": "1a916e03b64d5c00296872c7785cc9ceaaf3fc9b17696d979efe206ad5a8ae6e",
+    "downloaded": null
+  },
+  {
+    "file": "peqdb-diffuse-field.csv",
+    "source": "../Targets/PEQdB-_Diffuse-Field.txt",
+    "revision": null,
+    "sha256": "bb23f4e3c205b603830b7e96d7498b1534b557e78b8226c3dfb5642b2313f06a",
+    "downloaded": null
+  }
+]
