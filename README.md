@@ -1,59 +1,117 @@
 # SoundMix
 
-A native macOS application that folds an immersive audio bed (up to 9.1.6) down
-to a stereo pair in real time. It features a correct, configurable downmix matrix,
-exact headroom maths, a true-peak limiter, and a powerful parametric equalizer
-(PEQ) engine with a database of earphone measurements and reference targets.
+SoundMix is a native macOS app that mixes multichannel audio—up to a 9.1.6
+layout—into stereo for speakers or headphones. It combines configurable downmixing,
+headroom control, a true-peak limiter, and a parametric equalizer (PEQ) with
+headphone measurements and reference target curves.
+
+SoundMix processes **already-decoded PCM audio**. It does not decode Dolby Atmos
+or other proprietary bitstreams. Your player must send multichannel PCM through
+a virtual audio device such as BlackHole:
+
+```text
+Player → BlackHole → SoundMix → Headphones or speakers
+         multichannel PCM      stereo output
+```
 
 It is a native, single-process rebuild of
-[peqdb/macos (Downmix Renderer)](https://github.com/peqdb/macos), sharing that
-project's device setup while adding a full GUI, device volume control, and an
-interactive EQ studio.
+[peqdb/macos (Downmix Renderer)](https://github.com/peqdb/macos), with a graphical
+interface, device volume controls, and an interactive EQ editor.
+
+## Requirements
+
+- **macOS 14 or later.** Local builds target the build machine's architecture;
+  they are not universal binaries.
+- **A virtual loopback device**, such as
+  [BlackHole 16ch](https://existential.audio/blackhole/), to route audio from your
+  player into SoundMix.
+- **An output device with at least two channels**, such as headphones, a DAC,
+  or an audio interface.
+- **Microphone permission.** macOS requires this for audio input, including
+  virtual devices. SoundMix requests permission when you first press **Start**.
+
+Input and output must use the same sample rate. SoundMix asks the input device
+to match the output and reports an error if the device refuses.
+
+## Get started
+
+### Install or build
+
+Download a DMG from [GitHub Releases](https://github.com/oleggohman/SoundAPP/releases),
+open it, and drag **SoundMix.app** to **Applications**. Quit any running copy
+before replacing it. Local packages are ad-hoc signed, not Apple-notarized.
+
+To build from source, you need a Swift 6 toolchain, the macOS SDK, and Python 3
+for preparing the bundled target curves. From the repository root:
+
+```bash
+cd SoundMix
+./build.sh
+open build/SoundMix.app
+```
+
+The build uses the installed toolchain and macOS utilities; it does not download
+dependencies or require an Xcode project. Each build updates the tracked
+`SoundMix/BUILD_NUMBER` file.
+
+### Set up audio
+
+1. Install BlackHole 16ch and configure its channel layout in **Audio MIDI Setup**
+   to match your source. For a 9.1.6 bed, use channels 1–16 in the order shown below.
+2. Route your player's decoded audio to BlackHole.
+3. In SoundMix's **Devices** panel, choose BlackHole as the input, your headphones
+   or speakers as the output, and the layout that matches the source.
+4. In **Downmix**, choose a matrix recipe for speakers or a binaural fold for
+   headphones. Review the headroom and limiter settings.
+5. Press **Start** and allow microphone access when prompted. Use **Monitor** to
+   check activity and **Log** to investigate errors.
+
+The canonical 16-channel input order is:
+
+```text
+L, R, C, LFE, Ls, Rs, Lrs, Rrs, Lw, Rw, Ltf, Rtf, Ltm, Rtm, Ltr, Rtr
+```
+
+These are front left/right, centre, LFE, side left/right, rear left/right, wide
+left/right, then top front, top middle, and top rear left/right pairs. Selecting
+a layout does not turn a stereo source into multichannel audio.
 
 ## Features
 
-- **Downmix matrix** — four selectable recipes for folding the 16-channel bed
-  (`L,R,C,LFE,Ls,Rs,Lrs,Rrs,Lw,Rw,Ltf,Rtf,Ltm,Rtm,Ltr,Rtr`) to stereo: **Original
-  parity** (the legacy app's matrix, for A/B comparison), **Reference fold**
-  (conventional −3 dB fold), **Immersive fold** (depth-weighted, with opposite-side
-  bleed so the rear field doesn't collapse), and **Lt/Rt** (matrix-encoded for a
-  downstream surround decoder). Every coefficient is visible and data-driven rather
-  than compiled in.
-- **Headroom and the limiter** — the Downmix panel computes worst-case gain,
-  uncorrelated gain, automatic trim and total applied gain live, in dB, before you
-  press Start. A 4× oversampled, look-ahead true-peak limiter replaces the
-  original's blunt fixed preamp.
-- **Binaural / HRTF fold** — an alternative to the amplitude matrix for headphone
-  listening: each bed channel is convolved with a synthesised head-related filter
-  bank (Woodworth ITD, Brown-Duda head shadow, elevation-dependent pinna notch),
-  with no measured dataset to license or download. Runs at ~30× real time at 48 kHz.
-- **Device-aware engine** — direct Core Audio (AUHAL) I/O with live device-loss
-  notifications, any sample rate the output device runs at, and per-device
-  input/output volume control.
+### Downmix and playback
 
-### EQ Studio & PEQdB Integration
+- **Four matrix recipes:** Original parity for comparison with Downmix Renderer,
+  Reference fold for a conventional −3 dB fold, Immersive fold with depth-weighted
+  surround levels, and Lt/Rt for a downstream surround decoder.
+- **Headroom controls:** inspect worst-case gain, uncorrelated gain, automatic
+  trim, and total applied gain before starting playback.
+- **True-peak limiter:** 4× oversampling and look-ahead help control output peaks.
+- **Binaural headphone rendering:** a synthesized head-related filter bank gives
+  bed channels directional cues. It requires no downloaded HRTF dataset and does
+  not include head tracking or measured SOFA imports.
+- **Core Audio device controls:** device-loss notifications and separate input
+  and output volume sliders where supported. These sliders change the device's
+  system volume, including for other applications.
 
-- **Graphical PEQ editor** — a full-screen, native editor for Global and per-speaker
-  (L/R) EQ. Drag bands for gain and frequency, audition edits live against the
-  running audio, and Apply to save. Supports REW / Equalizer APO PEQ text import
-  and export.
-- **PEQdB picker** — search and load measured earphone/headphone curves directly
-  from the [PEQdB](https://peqdb.com) database (brand → model → variant) instead of
-  hand-editing measurement files; matched L/R pairs fill both ears at once.
-- **AutoTune** — a small-scale AutoEq: greedily designs peaking filters that pull a
-  measured earphone/headphone response onto a chosen target curve, writing ordinary
-  PEQ bands you can then drag and refine by hand.
-- **Target curves** — bundled reference targets (Harman IE 2019, IEF Preference,
-  PEQdB Diamond β/HiFi/Ultra, Moondrop VDSF, and more) ship with the app for
-  AutoTune and preview, with no network connection required.
-- **Earphone correction** — each EQ profile can carry a measured response (AutoEQ,
-  oratory1990, squig.link or REW export). The Response plot overlays the measured
-  curve, the EQ being applied, and the resulting corrected response together.
-- **EQ profile library** — save, export and import complete profiles (EQ text,
-  measurement, target) as a portable format.
+### EQ Studio
 
-See [`SoundMix/README.md`](SoundMix/README.md) for the full feature writeup,
-architecture notes, and a detailed comparison against the original app.
+- **Interactive PEQ editor:** edit Global, Speaker L, and Speaker R EQ by dragging
+  bands or entering values. Audition changes during playback; **Apply** saves them
+  to the profile. Import and export REW / Equalizer APO PEQ text.
+- **PEQdB measurement picker:** search headphone and earphone measurements by
+  brand, model, and variant. Matching L/R measurements can populate both ears.
+  Accessing the online database requires a network connection.
+- **AutoTune:** generate peaking filters to bring a measurement closer to a chosen
+  target, then refine the resulting bands manually.
+- **Bundled targets:** preview reference curves such as Harman IE 2019, IEF
+  Preference, PEQdB Diamond, and Moondrop VDSF without a network connection.
+- **Response comparison:** import measurements from AutoEQ, oratory1990,
+  squig.link, or REW and view measured, EQ, and predicted corrected curves together.
+- **Portable profiles:** save, export, and import EQ settings with their
+  measurements and targets.
+
+Use measurements and targets from compatible measurement systems. A target curve
+does not convert a measurement between rigs.
 
 ## Screenshots
 
@@ -67,57 +125,52 @@ architecture notes, and a detailed comparison against the original app.
 
 ![Monitor panel](Screenshots/Monitor.png)
 
-## Requirements
+## Development and packaging
 
-- **macOS 14 or later**, on the architecture you build for (ad-hoc signed local
-  builds are not universal).
-- **A virtual loopback device** to get decoded, multichannel PCM audio into
-  SoundMix — [BlackHole 16ch](https://existential.audio/blackhole/) is the one
-  this project and [peqdb/macos](https://github.com/peqdb/macos) are set up for.
-  SoundMix does not decode Dolby Atmos or other proprietary bitstreams itself;
-  your player (Apple Music, a DAW, …) must output already-decoded PCM to the
-  loopback device.
-  - In **Audio MIDI Setup**, configure the loopback device's channel layout
-    (e.g. 9.1.6) with channels labeled 1–16 in ascending order.
-- **Microphone permission** — macOS classes every Core Audio input, including a
-  virtual loopback device, as a microphone. SoundMix cannot capture audio
-  without it; the first **Start** triggers the system prompt.
-- **To build from source**: a Swift 6 toolchain and the macOS SDK only — no
-  Xcode project, no package manager, no network access.
-
-## Layout
-
-| Path | What it is |
-|---|---|
-| [`SoundMix/`](SoundMix/) | The app itself — source, tests, build and packaging scripts. See [`SoundMix/README.md`](SoundMix/README.md) for build instructions, versioning, and architecture notes. |
-| `Targets/` | Source reference EQ target curves (Harman, PEQdB, Moondrop VDSF, …), synced into `SoundMix/Resources/Targets` at build time. |
-
-## Quick start
+Run these commands from `SoundMix/`:
 
 ```bash
-cd SoundMix
-./build.sh              # builds build/SoundMix.app
-./run-offline-tests.sh  # DSP + file-render checks, no hardware needed
-./build-dmg.sh          # packages dist/SoundMix-<version>-build-<number>.dmg
+./run-tests.sh                # DSP checks
+./run-offline-tests.sh        # File-render and clock-drift checks
+./run-realtime-tests.sh       # Concurrency and resampling checks
+./run-device-volume-tests.sh  # Mocked volume writes; real-device reads only
 ```
 
-Swift 6 toolchain and the macOS SDK are the only requirements — no Xcode project,
-no package manager, no network access required to build.
+The automated checks do not replace listening tests on your intended devices.
+Offline file rendering is used for testing; it is not available in the app UI.
 
-## Releases
+To build and package a local installer:
 
-Every verified DMG build is published as a GitHub release with the DMG attached.
-This is automated: `SoundMix/build-dmg.sh` tags the release commit, then (with
-`UPLOAD_RELEASE=1`) publishes `dist/SoundMix-<version>-build-<number>.dmg` to a
-matching GitHub release via `gh`. See
-[`RELEASING.md`](RELEASING.md) for the full step-by-step procedure.
+```bash
+./build-dmg.sh
+```
+
+The installer is written to
+`SoundMix/dist/SoundMix-<version>-build-<number>.dmg` (relative to the repository
+root). To package an app you have already built, use `./build-dmg.sh --skip-build`.
+The script checks its version and build number and refuses to overwrite an
+existing DMG.
+
+Packaging is local by default. Setting `UPLOAD_RELEASE=1` also invokes `gh release
+create` to publish the DMG; it requires an authenticated GitHub CLI. The script
+does not create a local annotated Git tag. Ensure the release tag identifies the
+source commit used for the app before publishing.
+
+## Project layout and further reading
+
+| Path | Contents |
+|---|---|
+| [`SoundMix/README.md`](SoundMix/README.md) | Detailed EQ usage, DSP architecture, versioning, and comparison with Downmix Renderer. |
+| [`SoundMix/Sources/`](SoundMix/Sources/) | DSP core, Core Audio engine, and SwiftUI interface. |
+| [`SoundMix/Resources/SoundMix.help/`](SoundMix/Resources/SoundMix.help/) | Bundled user guide. |
+| [`Targets/`](Targets/) | Source target curves, synchronized into the app resources during builds. |
+| [`SoundMix/VERIFICATION.md`](SoundMix/VERIFICATION.md) | Recorded live-audio measurements and their test conditions. |
+| [`SECURITY.md`](SECURITY.md) | Security policy and reporting guidance. |
 
 ## Thanks
 
-- [peqdb/macos](https://github.com/peqdb/macos) — for the original Downmix Renderer
-  idea this app rebuilds.
-- [PEQdB](https://peqdb.com) — for the earphone/headphone measurement database
-  behind the PEQdB picker.
+- [peqdb/macos](https://github.com/peqdb/macos) — the original Downmix Renderer.
+- [PEQdB](https://peqdb.com) — the headphone and earphone measurement database.
 
 ## License
 
