@@ -59,9 +59,21 @@ mv "$STAGING/installer.dmg" "$DMG"
 echo "==> Installer ready: $PWD/$DMG"
 
 TAG="v$VERSION-build-$BUILD"
+
+echo "==> Creating local git tag $TAG"
+if git rev-parse "$TAG" >/dev/null 2>&1; then
+    echo "Tag $TAG already exists locally. Keeping it."
+else
+    git tag -a "$TAG" -m "SoundMix $VERSION build $BUILD"
+fi
+
 if [ "${UPLOAD_RELEASE:-0}" = "1" ]; then
     echo "==> Uploading $DMG to GitHub release $TAG"
     RELEASE_NOTES="${RELEASE_NOTES:-Ad-hoc signed; macOS 14 or later. Right-click → Open on first launch.}"
+
+    # We must push the tag before creating the release so GitHub associates it with the right commit
+    git push origin "$TAG" || true
+
     gh release create "$TAG" "$DMG" \
         --repo oleggohman/SoundAPP \
         --title "SoundMix $VERSION build $BUILD" \
