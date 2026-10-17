@@ -850,13 +850,17 @@ private struct PEQDBPickerSheet: View {
                         .foregroundStyle(CZ.Color.lightGray)
                 }
                 Spacer()
+                if let updated = model.peqdbLastUpdated {
+                    Text("Updated \(Self.stamp.string(from: updated))")
+                        .font(CZ.Typography.caption)
+                        .foregroundStyle(CZ.Color.lightGray)
+                }
                 if model.peqdbLoading {
                     ProgressView().controlSize(.small)
                 }
-                if model.peqdbBrands.isEmpty && !model.peqdbLoading {
-                    CZButton(title: "Reload", icon: "arrow.clockwise",
-                             variant: .secondary, size: .small) { model.loadPEQDB(refresh: true) }
-                }
+                CZButton(title: "Refresh database", icon: "arrow.clockwise",
+                         variant: .secondary, size: .small,
+                         isEnabled: !model.peqdbLoading) { model.loadPEQDB(refresh: true) }
                 CZButton(title: "Close", variant: .transparent, size: .small) { dismiss() }
             }
             .padding(CZ.Spacing.md)
@@ -935,6 +939,13 @@ private struct PEQDBPickerSheet: View {
         .frame(minWidth: 560, minHeight: 460)
         .onAppear { model.loadPEQDB() }
     }
+
+    private static let stamp: DateFormatter = {
+        let f = DateFormatter()
+        f.dateStyle = .medium
+        f.timeStyle = .short
+        return f
+    }()
 }
 
 private struct ProfileRow: View {

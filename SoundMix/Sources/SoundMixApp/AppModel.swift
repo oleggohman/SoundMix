@@ -750,6 +750,7 @@ final class AppModel: ObservableObject {
     @Published private(set) var peqdbBrands: [PEQDBCatalog.Brand] = []
     @Published private(set) var peqdbLoading = false
     @Published private(set) var peqdbError: String?
+    @Published private(set) var peqdbLastUpdated: Date?
     private let peqdb = PEQDBCatalog.shared
 
     /// Bring the catalog up once for the picker. A cached copy answers
@@ -758,12 +759,14 @@ final class AppModel: ObservableObject {
         guard !peqdbLoading else { return }
         peqdbLoading = true
         peqdbError = nil
+        peqdbLastUpdated = peqdb.lastUpdated
         peqdb.load(refresh: refresh) { [weak self] result in
             MainActor.assumeIsolated {
                 guard let self else { return }
                 self.peqdbLoading = false
                 switch result {
                 case .success:
+                    self.peqdbLastUpdated = self.peqdb.lastUpdated
                     self.peqdbBrands = self.peqdb.brands
                     self.append(String(format: "PEQdB catalog ready — %d brands, %d models.",
                                        self.peqdbBrands.count,

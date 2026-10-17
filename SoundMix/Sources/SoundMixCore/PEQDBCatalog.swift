@@ -53,6 +53,9 @@ public final class PEQDBCatalog: @unchecked Sendable {
 
     // MARK: - Fixed layout, mirrored from the site's bundle
 
+    /// When the on-disk cache is older than this, `load()` fetches fresh data.
+    public static let autoRefreshInterval: TimeInterval = 14 * 24 * 3600
+
     static let pointsPerCurve = 384
     static let recordBytes = 776
     static let gridLowHz = 20.0
@@ -85,8 +88,24 @@ public final class PEQDBCatalog: @unchecked Sendable {
 
     private var catalogFile: URL { cacheDirectory.appendingPathComponent("catalog.json") }
     private var graphFile: URL { cacheDirectory.appendingPathComponent("graph-data.bin") }
+    private var stampFile: URL { cacheDirectory.appendingPathComponent("last-updated.txt") }
 
     public var isLoaded: Bool { !brands.isEmpty && !graphData.isEmpty }
+
+    /// When the cached database was last fetched from peqdb.com, if known.
+    /// The stamp is read from disk each time so it is valid before `load()`.
+    public var lastUpdated: Date? {
+        guard let text = try? String(contentsOf: stampFile, encoding: .utf8),
+              let stamp = Double(text.trimmingCharacters(in: .whitespacesAndNewlines))
+        else { return nil }
+        return Date(timeIntervalSince1970: stamp)
+    }
+
+    /// True when the cache is missing or older than `autoRefreshInterval`.
+    public var cacheIsStale: Bool {
+        guard let lastUpdated else { return true }
+        return Date().timeIntervalSince(lastUpdated) > PEQDBCatalog.autoRefreshInterval
+    }
 
     // MARK: - Loading
 
@@ -96,7 +115,7 @@ public final class PEQDBCatalog: @unchecked Sendable {
     public func load(refresh: Bool = false, completion: @escaping (Result<Void, CatalogError>) -> Void) {
         queue.async { [self] in
             do {
-                if refresh || !hasCompleteCache() {
+                if refresh || !hasCompleteCache() || cacheIsStale {
                     try fetchFreshCatalog()
                 } else {
                     try loadCached()
@@ -139,6 +158,9 @@ public final class PEQDBCatalog: @unchecked Sendable {
 
         graphData = try fetchBinary(PEQDBCatalog.binURL)
         try graphData.write(to: graphFile, options: .atomic)
+
+        let stamp = String(Int(Date().timeIntervalSince1970))
+        try stamp.write(to: stampFile, atomically: true, encoding: .utf8)
     }
 
     private func fetchString(_ url: URL) throws -> String {
