@@ -39,3 +39,6 @@ import_opra.swift
 
 # Paseo workspace helper config, not part of the app
 paseo.json
+
+# Local documentation
+/docs/
