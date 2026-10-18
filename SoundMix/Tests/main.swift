@@ -1446,6 +1446,33 @@ do {
           "after \(String(format: "%.2f", after)) dB")
 }
 
+// MARK: - Update check
+
+section("Update check: release tag parsing and comparison")
+do {
+    check(Version.parse("v1.2.0-build-58") == Version.parse("v1.2.0-build-58"),
+          "identical tags parse to equal versions")
+    check(Version.parse("v1.2.0-build-9")! < Version.parse("v1.2.0-build-58")!,
+          "build numbers compare numerically, not as text", "9 vs 58")
+    check(Version.parse("v1.3.0-build-1")! > Version.parse("v1.2.9-build-99")!,
+          "a higher version outranks any build number")
+    check(Version.parse("v1.2.0-build-58")! > Version.parse("v1.2.0-build-9")!,
+          "build 58 sorts after build 9")
+    check(Version.parse("1.2.0-build-58") == nil,
+          "a tag without the v prefix is rejected")
+    check(Version.parse("v1.2.0") == nil,
+          "a tag without a build suffix is rejected")
+    check(Version.parse("v1.2.0-beta.1-build-3") == nil,
+          "pre-release tags are rejected")
+    check(Version.parse("v1.2.0-build-x") == nil,
+          "a non-numeric build number is rejected")
+    check(Version.parse("v1.2-build-3") == nil,
+          "two-component versions are rejected")
+    check(Version.parse("v1.2.0-build-58")!.displayString == "1.2.0 (build 58)",
+          "the display string reads naturally",
+          Version.parse("v1.2.0-build-58")!.displayString)
+}
+
 print("\n\(checks - failures)/\(checks) checks passed")
 if failures > 0 { print("\(failures) FAILED"); exit(1) }
 print("All DSP checks passed.")
