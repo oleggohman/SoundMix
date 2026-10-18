@@ -36,6 +36,9 @@ struct Version: Equatable, Comparable {
 
     /// A human-readable form for menus and the update banner.
     var displayString: String { "\(major).\(minor).\(patch) (build \(build))" }
+
+    /// The canonical tag form, so skip-state and display can share one key.
+    var tagString: String { "v\(major).\(minor).\(patch)-build-\(build)" }
 }
 
 /// The parts of a GitHub release the update check cares about, decoded from

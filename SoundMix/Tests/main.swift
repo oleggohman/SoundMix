@@ -1471,6 +1471,9 @@ do {
     check(Version.parse("v1.2.0-build-58")!.displayString == "1.2.0 (build 58)",
           "the display string reads naturally",
           Version.parse("v1.2.0-build-58")!.displayString)
+    check(Version.parse("v1.2.0-build-58")!.tagString == "v1.2.0-build-58",
+          "the tag string round-trips through parse",
+          Version.parse("v1.2.0-build-58")!.tagString)
 }
 
 section("Update check: GitHub release JSON")
