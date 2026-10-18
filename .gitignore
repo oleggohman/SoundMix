@@ -24,6 +24,7 @@ SoundMix/build/
 .agents/
 .claude/
 .codebuddy/
+.codegraph/
 skills-lock.json
 
 # Local agent instructions, not part of the app
@@ -35,3 +36,6 @@ RELEASING.md
 # Stray files from another project (SystemEQ-for-Mac), not part of SoundMix
 INTEGRATION_MANUAL.md
 import_opra.swift
+
+# Paseo workspace helper config, not part of the app
+paseo.json
