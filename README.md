@@ -123,7 +123,9 @@ does not convert a measurement between rigs.
 |---|---|
 | ![Output EQ](Screenshots/OutputEQ.png) | ![PEQ editor](Screenshots/PEQ_Editor.png) |
 
-![Monitor panel](Screenshots/Monitor.png)
+| PEQdB measurement search | Monitor |
+|---|---|
+| ![PEQdB measurement search and results](Screenshots/PEQdbSearch.png) | ![Monitor panel](Screenshots/Monitor.png) |
 
 ## Development and packaging
 
