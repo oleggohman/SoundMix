@@ -118,3 +118,46 @@ extension NSRegularExpression {
         return firstMatch(in: string, range: range) != nil
     }
 }
+
+/// Throttles automatic update checks so the app stays inside GitHub's
+/// unauthenticated rate limits: one background check per 24 hours.
+struct UpdateSchedule {
+    /// The quiet period between automatic checks, in seconds.
+    static let minimumInterval: TimeInterval = 24 * 3600
+
+    /// Reports whether a check is due, given the moment of the last one.
+    ///
+    /// A nil `lastCheck` (never checked) is always due; otherwise the check
+    /// re-arms only once `minimumInterval` has fully elapsed.
+    func shouldCheck(now: Date, lastCheck: Date?) -> Bool {
+        guard let lastCheck else { return true }
+        return now.timeIntervalSince(lastCheck) >= Self.minimumInterval
+    }
+}
+
+/// Remembers releases the user dismissed with Skip This Version, so the
+/// banner never resurfaces for the exact release they turned down.
+struct SkipState {
+    /// The store the skips live in; injected for tests.
+    private let store: UserDefaults
+    /// Where the skipped tags live inside the store.
+    private static let key = "updateCheck.skippedTags"
+
+    /// Creates the skip state over an injected store; production callers
+    /// pass `.standard`.
+    init(store: UserDefaults = .standard) {
+        self.store = store
+    }
+
+    /// Reports whether the user skipped this exact release tag.
+    func isSkipped(tag: String) -> Bool {
+        store.stringArray(forKey: Self.key)?.contains(tag) ?? false
+    }
+
+    /// Records the tag as skipped, persisting it across launches.
+    func skip(tag: String) {
+        var tags = store.stringArray(forKey: Self.key) ?? []
+        if !tags.contains(tag) { tags.append(tag) }
+        store.set(tags, forKey: Self.key)
+    }
+}

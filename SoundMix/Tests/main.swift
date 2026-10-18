@@ -1522,6 +1522,43 @@ do {
         "assets that are not the SoundMix DMG are ignored")
 }
 
+section("Update check: 24-hour schedule and skip-this-version")
+do {
+    let schedule = UpdateSchedule()
+    let now = Date()
+    check(schedule.shouldCheck(now: now, lastCheck: nil),
+          "a never-checked app checks right away")
+    check(!schedule.shouldCheck(now: now, lastCheck: now),
+          "a check that just happened silences the schedule")
+    check(!schedule.shouldCheck(now: now, lastCheck: now.addingTimeInterval(-1000)),
+          "less than 24 hours since the last check stays quiet")
+    check(schedule.shouldCheck(now: now,
+                               lastCheck: now.addingTimeInterval(-UpdateSchedule.minimumInterval - 1)),
+          "24 hours plus a second re-arms the check")
+    check(!schedule.shouldCheck(now: now,
+                                lastCheck: now.addingTimeInterval(-UpdateSchedule.minimumInterval + 1)),
+          "a second shy of 24 hours stays quiet")
+    near(UpdateSchedule.minimumInterval, 24 * 3600, 0.001,
+         "the minimum interval is one day")
+
+    // Skip state persists in the injected store, keyed by tag, and only
+    // silences the exact skipped release.
+    let suite = UserDefaults(suiteName: "update-check-tests")!
+    suite.removePersistentDomain(forName: "update-check-tests")
+    let skip = SkipState(store: suite)
+    check(!skip.isSkipped(tag: "v1.2.0-build-58"),
+          "a fresh store skips nothing")
+    skip.skip(tag: "v1.2.0-build-58")
+    check(skip.isSkipped(tag: "v1.2.0-build-58"),
+          "a skipped release is remembered")
+    check(!skip.isSkipped(tag: "v1.2.0-build-59"),
+          "a newer release is not silenced by the older skip")
+    let reread = SkipState(store: suite)
+    check(reread.isSkipped(tag: "v1.2.0-build-58"),
+          "the skip survives re-reading the store")
+    suite.removePersistentDomain(forName: "update-check-tests")
+}
+
 print("\n\(checks - failures)/\(checks) checks passed")
 if failures > 0 { print("\(failures) FAILED"); exit(1) }
 print("All DSP checks passed.")
