@@ -3,18 +3,26 @@ import AppKit
 
 struct SoundMixApp: App {
     @StateObject private var model = AppModel()
+    @StateObject private var checker = UpdateChecker()
     @NSApplicationDelegateAdaptor(AppDelegate.self) private var delegate
 
     var body: some Scene {
         Window("SoundMix", id: "main") {
             ContentView()
                 .environmentObject(model)
+                .environmentObject(checker)
                 .preferredColorScheme(.light)
-                .onAppear { model.reloadPEQWarnings() }
+                .onAppear {
+                    model.reloadPEQWarnings()
+                    checker.checkForUpdates(manual: false)
+                }
         }
         .windowResizability(.contentMinSize)
         .commands {
             CommandGroup(replacing: .newItem) {}
+            CommandGroup(after: .newItem) {
+                Button("Check for Updates…") { checker.checkForUpdates(manual: true) }
+            }
             CommandMenu("Render") {
                 Button("Start") { model.start() }
                     .keyboardShortcut("r", modifiers: [.command])
