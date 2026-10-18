@@ -1473,6 +1473,55 @@ do {
           Version.parse("v1.2.0-build-58")!.displayString)
 }
 
+section("Update check: GitHub release JSON")
+do {
+    let payload = """
+    {
+      "tag_name": "v1.2.0-build-58",
+      "html_url": "https://github.com/oleggohman/SoundMix/releases/tag/v1.2.0-build-58",
+      "body": "Notes here.",
+      "draft": false,
+      "prerelease": false,
+      "published_at": "2026-10-17T09:00:00Z",
+      "assets": [
+        {"name": "SoundMix-1.2.0-build-58.dmg",
+         "browser_download_url": "https://example.com/SoundMix-1.2.0-build-58.dmg"}
+      ]
+    }
+    """.data(using: .utf8)!
+    if let info = ReleaseInfo.parse(from: payload) {
+        check(info.version == Version.parse("v1.2.0-build-58"),
+              "the tag parses into a version")
+        check(info.pageURL.absoluteString.contains("v1.2.0-build-58"),
+              "the page URL comes from html_url")
+        check(info.dmgURL != nil, "the DMG asset is picked up by name")
+        check(info.notes == "Notes here.", "release notes survive the parse")
+        check(info.published != nil, "the publish date parses as ISO 8601")
+        check(info.dmgURL!.lastPathComponent == "SoundMix-1.2.0-build-58.dmg",
+              "the DMG asset name matches the build's naming scheme")
+    } else {
+        check(false, "a pinned GitHub release payload parses")
+    }
+
+    check(ReleaseInfo.parse(from: #"{"tag_name": "latest"}"#.data(using: .utf8)!) == nil,
+          "a payload without a valid tag is rejected")
+    check(ReleaseInfo.parse(from: #"{"tag_name": "v1.2.0-build-58"}"#.data(using: .utf8)!)?.dmgURL == nil,
+          "a release without assets has no DMG URL")
+    check(ReleaseInfo.parse(
+        from: #"{"tag_name": "v1.2.0-build-58", "draft": true}"#.data(using: .utf8)!) == nil,
+        "draft releases are rejected")
+    check(ReleaseInfo.parse(
+        from: #"{"tag_name": "v1.2.0-build-58", "prerelease": true}"#.data(using: .utf8)!) == nil,
+        "pre-releases are rejected")
+    check(ReleaseInfo.parse(from: #"not json"#.data(using: .utf8)!) == nil,
+        "non-JSON data is rejected")
+    check(ReleaseInfo.parse(from: """
+        {"tag_name": "v1.2.0-build-58", "assets": [
+          {"name": "Source code.zip", "browser_download_url": "https://example.com/zip"}]}
+        """.data(using: .utf8)!)?.dmgURL == nil,
+        "assets that are not the SoundMix DMG are ignored")
+}
+
 print("\n\(checks - failures)/\(checks) checks passed")
 if failures > 0 { print("\(failures) FAILED"); exit(1) }
 print("All DSP checks passed.")
