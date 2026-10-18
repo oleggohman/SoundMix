@@ -74,8 +74,10 @@ if [ "${UPLOAD_RELEASE:-0}" = "1" ]; then
     # We must push the tag before creating the release so GitHub associates it with the right commit
     git push origin "$TAG" || true
 
+    # The repo was renamed SoundAPP → SoundMix; the old slug still redirects,
+    # but publishing under the canonical name keeps it the source of truth.
     gh release create "$TAG" "$DMG" \
-        --repo oleggohman/SoundAPP \
+        --repo oleggohman/SoundMix \
         --title "SoundMix $VERSION build $BUILD" \
         --notes "$RELEASE_NOTES" ${DRAFT:+--draft}
 else
