@@ -81,3 +81,31 @@ look the same as silence.
 - Long-run clock drift is verified to 53.6 s, not to hours.
 - The earphone-measurement graph and the EQ profile manager are covered by the unit
   suite (162 checks) but were not measured acoustically.
+
+---
+
+# Update check — verification addendum (2026-10-18)
+
+Feature: GitHub Releases update check (launch + manual). Branch `feature/update-check`.
+
+## What was verified
+
+| Check | Result |
+|---|---|
+| DSP suite with update-check logic | **403/403 passed** (was 370/370; +33: 11 Version incl. tagString round-trip, 12 ReleaseInfo JSON, 10 schedule/skip) |
+| TDD discipline | Every cycle watched RED for the right reason (undeclared type / missing member) before GREEN |
+| Tag ordering | `build-58 > build-9` numerically; `1.3.0-build-1 > 1.2.9-build-99` (version outranks build) |
+| Malformed tags | `v1.2.0` (no build), prerelease, non-numeric build, 2-component versions all rejected |
+| Schedule | 24 h gate: nil last-check → check; −23:59:59 → wait; +1 s past → check |
+| Skip state | persists to UserDefaults suite and survives re-read; newer releases not silenced by older skips |
+| Full app build | `build.sh` green: SoundMix.app 1.2.0, ad-hoc signed, hardened runtime |
+| DMG asset matching | name regex `^SoundMix-\d+\.\d+\.\d+-build-\d+\.dmg$`; non-DMG assets rejected |
+
+## Not verified (interactive; needs GUI + a genuinely newer release)
+
+- Banner appearance/Get Update/Skip across relaunch on a real newer release (none exists; latest is v1.2.0-build-58 = current).
+- Offline launch silence and single-request-per-24 h behavior live.
+- Menu-item alert on a dev build newer than latest (covered by unit ordering tests only).
+- Live api.github.com round trip from the app (sandbox proxy blocks TLS to it in dev; the endpoint itself was verified via `gh api` → `v1.2.0-build-58`).
+
+Manual GUI smoke test deferred — the development sandbox cannot launch AppKit apps.
