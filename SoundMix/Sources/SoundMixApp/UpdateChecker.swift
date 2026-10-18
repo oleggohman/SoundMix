@@ -207,17 +207,6 @@ final class UpdateChecker: ObservableObject {
         }
 
         if skipState.isSkipped(tag: info.version.tagString) {
-            // No newer build to act on. A release that fails to parse counts
-            // as "no news", not as an error — the next scheduled check
-            // retries on its own.
-            if manual {
-                presentAlert(title: Copy.upToDateTitle,
-                             message: Copy.upToDateMessage(running: current.displayString))
-            }
-            return
-        }
-
-        if skipState.isSkipped(tag: info.version.tagString) {
             // The user asked not to be nagged about this version, so the
             // banner stays down; a manual check still answers honestly.
             if manual {
