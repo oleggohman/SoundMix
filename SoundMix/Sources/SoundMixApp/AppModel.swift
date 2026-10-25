@@ -119,9 +119,15 @@ final class AppModel: ObservableObject {
 
         load()
         profiles = library.profiles
+        // The curves live only in the profile, not in settings.json. Leaving them
+        // out here made a relaunch show an empty Earphone response, and the next
+        // Apply then saved that emptiness over the profile's curves.
         if let id = selectedProfileID, let p = profiles.first(where: { $0.id == id }) {
             profileNameDraft = p.name
             profileNotesDraft = p.notes
+            measurementLeft = p.measurementLeft
+            measurementRight = p.measurementRight
+            target = p.target
         }
 
         startMeterTimer()
