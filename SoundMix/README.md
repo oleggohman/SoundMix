@@ -46,9 +46,34 @@ launch SoundMix from Applications. Quit an older running copy before replacing i
 The image contains the app, an Applications shortcut, and installation instructions.
 The packager verifies the app signature and disk-image checksum.
 
-These local builds require macOS 14 or later and target the build machine's
-architecture. They are ad-hoc signed; Developer ID signing and Apple notarization
-for public distribution are not configured.
+These builds require macOS 14 or later and target the build machine's
+architecture. Local builds are ad-hoc signed. Releases on GitHub are Developer
+ID signed and notarized by Apple.
+
+`build-dmg.sh` refuses to package an app whose `Info.plist` lacks a real
+`SUPublicEDKey`. Run `Vendor/Sparkle/bin/generate_keys` once: it keeps the
+private key in the login Keychain and prints the public key for
+`Resources/Info.plist`. Back the private key up with
+`Vendor/Sparkle/bin/generate_keys -x <file>`, outside the repository. For each
+release, note that `build.sh` signs with `--timestamp=none` and is not
+notarizable by itself: re-sign with a secure timestamp (`codesign --timestamp`),
+notarize and staple the DMG, then run
+`./make-appcast.sh dist/SoundMix-<version>-build-<n>.dmg <notes.md>` and upload
+the resulting `dist/appcast.xml` to the GitHub release together with the DMG.
+
+## Updates
+
+SoundMix updates itself with [Sparkle](https://sparkle-project.org), vendored in
+`Vendor/Sparkle/`. It checks the feed of the latest GitHub release once a day,
+and **File > Check for Updates…** checks immediately. A newer version opens
+Sparkle's update window with the release notes and **Install Update**, **Skip
+This Version** and **Remind Me Later**. **Install Update** downloads the DMG,
+verifies its EdDSA signature and the app's Apple code signature, replaces the
+app and relaunches it. A failed check installs nothing. Updates never install
+without confirmation.
+
+Build 87 and older predate the updater: their banner opens the release page, and
+the first Sparkle build has to be installed by hand once.
 
 ## What changed
 
@@ -258,7 +283,8 @@ UI library — and every colour comes from a named token in `Sources/SoundMixApp
 - Input and output must run at the same sample rate. SoundMix asks Core Audio to match
   the input to the output and reports clearly when the device refuses, instead of performing arbitrary sample-rate conversion. A continuously adjusted
   windowed-sinc bridge compensates for small differences between independent device clocks.
-- Ad-hoc signed. Gatekeeper will ask on first launch unless you sign it with your own identity.
+- Builds you make locally are ad-hoc signed, so Gatekeeper warns when one is opened on another Mac. Releases
+  are Developer ID signed and notarized.
 - **Microphone permission is mandatory.** macOS classes every Core Audio input as a microphone,
   including a virtual loopback like BlackHole, so the first Start shows the system prompt. If it
   is refused the Devices panel says so and offers a button straight to the right Settings pane.

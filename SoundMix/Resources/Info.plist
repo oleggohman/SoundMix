@@ -30,5 +30,15 @@
 	<string>SoundMix.help</string>
 	<key>CFBundleHelpBookName</key>
 	<string>io.soundmix.app.help</string>
+	<key>SUFeedURL</key>
+	<string>https://github.com/oleggohman/SoundMix/releases/latest/download/appcast.xml</string>
+	<key>SUPublicEDKey</key>
+	<string>BiRDBRu8E3VgW9j6PvR4sVjf7NlVNpZnQv58aaif5/o=</string>
+	<key>SUEnableAutomaticChecks</key>
+	<true/>
+	<key>SUScheduledCheckInterval</key>
+	<integer>86400</integer>
+	<key>SUAutomaticallyUpdate</key>
+	<false/>
 </dict>
 </plist>

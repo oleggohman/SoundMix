@@ -39,7 +39,8 @@ to match the output and reports an error if the device refuses.
 
 Download a DMG from [GitHub Releases](https://github.com/oleggohman/SoundAPP/releases),
 open it, and drag **SoundMix.app** to **Applications**. Quit any running copy
-before replacing it. Local packages are ad-hoc signed, not Apple-notarized.
+before replacing it. Releases are Developer ID signed and notarized by Apple.
+DMGs you package yourself with `build-dmg.sh` are ad-hoc signed.
 
 To build from source, you need a Swift 6 toolchain, the macOS SDK, and Python 3
 for preparing the bundled target curves. From the repository root:
@@ -53,6 +54,19 @@ open build/SoundMix.app
 The build uses the installed toolchain and macOS utilities; it does not download
 dependencies or require an Xcode project. Each build updates the tracked
 `SoundMix/BUILD_NUMBER` file.
+
+### Updates
+
+SoundMix checks for a newer release once a day; you can also choose
+**File > Check for Updates…**. When one is available, the update window shows
+the new version and its release notes, with **Install Update**, **Skip This
+Version** and **Remind Me Later**. **Install Update** downloads the new version,
+verifies its signatures, replaces the app and relaunches it. Nothing is
+installed without your confirmation.
+
+Build 87 and older do not have this updater; their update banner only opens the
+release page. Install the first release with the updater by hand once, as above;
+later versions install from inside the app.
 
 ### Set up audio
 
@@ -153,10 +167,34 @@ root). To package an app you have already built, use `./build-dmg.sh --skip-buil
 The script checks its version and build number and refuses to overwrite an
 existing DMG.
 
-Packaging is local by default. Setting `UPLOAD_RELEASE=1` also invokes `gh release
-create` to publish the DMG; it requires an authenticated GitHub CLI. The script
-does not create a local annotated Git tag. Ensure the release tag identifies the
-source commit used for the app before publishing.
+Packaging is local by default. The script creates the local annotated tag
+`v<version>-build-<number>` if it does not exist; ensure it identifies the
+source commit used for the app before publishing. Setting `UPLOAD_RELEASE=1`
+also invokes `gh release create --draft` to upload the DMG; it requires an
+authenticated GitHub CLI. The release is always a draft because it carries no
+`appcast.xml`: published as the latest release, it would make every installed
+copy's update check fail. Attach `appcast.xml` (see below) before publishing.
+
+### Signing updates (maintainers)
+
+Updates use [Sparkle](https://sparkle-project.org), vendored in
+`SoundMix/Vendor/Sparkle/`. Every update is signed with an EdDSA key whose
+public half is built into the app.
+
+- **Once:** from `SoundMix/`, run `Vendor/Sparkle/bin/generate_keys`. It stores
+  the private key in your login Keychain and prints the public key; put that
+  in `Resources/Info.plist` as `SUPublicEDKey`. Back up the private key with
+  `Vendor/Sparkle/bin/generate_keys -x <file>` and keep the file outside the
+  repository: if the key is lost, installed copies cannot verify any later
+  update. `build-dmg.sh` refuses to package an app without the public key.
+- **Each release:** `build.sh` signs with `--timestamp=none` and is not
+  notarizable by itself. Re-sign the app with a secure timestamp
+  (`codesign --timestamp`), then notarize and staple the DMG (stapling changes
+  its bytes), and run `./make-appcast.sh dist/SoundMix-<version>-build-<n>.dmg <notes.md>`.
+  It checks that the Keychain key matches the app's `SUPublicEDKey`, signs the
+  DMG with it, writes `dist/appcast.xml` and checks
+  the signature. Upload `appcast.xml` to the same GitHub release as the DMG;
+  the app reads the feed from the latest release.
 
 ## Project layout and further reading
 

@@ -1,27 +1,29 @@
 import SwiftUI
 import AppKit
+import Sparkle
 
 struct SoundMixApp: App {
     @StateObject private var model = AppModel()
-    @StateObject private var checker = UpdateChecker()
     @NSApplicationDelegateAdaptor(AppDelegate.self) private var delegate
+
+    /// The app's one Sparkle updater, started at launch. It runs the daily
+    /// background check on its own and installs only after the user agrees
+    /// (see the SU* keys in Info.plist).
+    private let updaterController = SPUStandardUpdaterController(
+        startingUpdater: true, updaterDelegate: nil, userDriverDelegate: nil)
 
     var body: some Scene {
         Window("SoundMix", id: "main") {
             ContentView()
                 .environmentObject(model)
-                .environmentObject(checker)
                 .preferredColorScheme(.light)
-                .onAppear {
-                    model.reloadPEQWarnings()
-                    checker.checkForUpdates(manual: false)
-                }
+                .onAppear { model.reloadPEQWarnings() }
         }
         .windowResizability(.contentMinSize)
         .commands {
             CommandGroup(replacing: .newItem) {}
             CommandGroup(after: .newItem) {
-                Button("Check for Updates…") { checker.checkForUpdates(manual: true) }
+                CheckForUpdatesView(updater: updaterController.updater)
             }
             CommandMenu("Render") {
                 Button("Start") { model.start() }

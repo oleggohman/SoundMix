@@ -86,6 +86,8 @@ look the same as silence.
 
 # Update check — verification addendum (2026-10-18)
 
+> Superseded by Sparkle (2026-10-25): the GitHub-API checker described here has been removed.
+
 Feature: GitHub Releases update check (launch + manual). Branch `feature/update-check`.
 
 ## What was verified

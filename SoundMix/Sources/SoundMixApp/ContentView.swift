@@ -21,7 +21,6 @@ enum Panel: String, CaseIterable, Identifiable {
 
 struct ContentView: View {
     @EnvironmentObject var model: AppModel
-    @EnvironmentObject var checker: UpdateChecker
     @State private var panel: Panel = .devices
 
     var body: some View {
@@ -40,7 +39,6 @@ struct ContentView: View {
             header
             ScrollView {
                 VStack(alignment: .leading, spacing: CZ.Spacing.md) {
-                    UpdateBanner(checker: checker)
                     if let error = model.errorMessage {
                         CZAlert(kind: .error, message: error)
                     }

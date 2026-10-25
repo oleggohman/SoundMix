@@ -8,6 +8,9 @@ BINARY="SoundMix"
 BUILD_DIR="build"
 APP="$BUILD_DIR/$APP_NAME.app"
 MODCACHE="${TMPDIR:-/tmp}/soundmix-modcache"
+# Sparkle is committed under Vendor/ (see Vendor/Sparkle/VERSION), so the
+# build stays offline.
+SPARKLE_DIR="Vendor/Sparkle"
 
 VERSION=$(cat VERSION)
 if [[ ! "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
@@ -42,11 +45,14 @@ echo "==> Compiling SoundMix $VERSION (build $BUILD_NUMBER)"
 # Start from a clean bundle: resource copies below merge, so files removed
 # from Resources/ would otherwise survive from the previous build.
 rm -rf "$APP"
-mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources" "$MODCACHE"
+mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources" "$APP/Contents/Frameworks" "$MODCACHE"
 
+# The app links Sparkle from Contents/Frameworks, hence the rpath.
 swiftc -O -swift-version 5 \
     -module-cache-path "$MODCACHE" \
     -framework AppKit -framework CoreAudio -framework AudioToolbox \
+    -F "$SPARKLE_DIR" -framework Sparkle \
+    -Xlinker -rpath -Xlinker @executable_path/../Frameworks \
     Sources/SoundMixCore/*.swift \
     Sources/SoundMixEngine/*.swift \
     Sources/SoundMixApp/*.swift \
@@ -69,13 +75,62 @@ python3 Tools/sync_targets.py
 ditto Resources/Targets "$APP/Contents/Resources/Targets"
 cp -R Resources/SoundMix.help "$APP/Contents/Resources/"
 printf 'APPL????' > "$APP/Contents/PkgInfo"
+# ditto keeps the framework's Versions/Current symlinks intact.
+ditto "$SPARKLE_DIR/Sparkle.framework" "$APP/Contents/Frameworks/Sparkle.framework"
 
-echo "==> Signing (ad-hoc, hardened runtime)"
-# --options runtime is required for notarization later.
-# It strictly enforces microphone access, so the entitlement is required.
-codesign --force --deep --sign - --options runtime --entitlements SoundMix.entitlements "$APP" 2>/dev/null \
-    || codesign --force --deep --sign - --entitlements SoundMix.entitlements "$APP" 2>/dev/null \
-    || echo "    (ad-hoc signing unavailable; the app still runs locally)"
+# Hardened runtime enforces library validation: the app may only load
+# Sparkle when both carry the same Team ID. Ad-hoc signatures carry none, so
+# the runtime is only on when a real identity signs everything. Local builds
+# skip the secure timestamp to stay offline, so this output is NOT
+# notarizable: a release must be re-signed with a secure timestamp
+# (`codesign --timestamp`), then notarized and stapled, before make-appcast.sh.
+# The runtime also strictly enforces microphone access, so the entitlement
+# is required.
+SIGN_ID="-"
+SIGN_FLAGS=()
+if [[ -n "${AppleIDENTITY:-}" ]] \
+    && security find-identity -v -p codesigning 2>/dev/null | grep -qF "$AppleIDENTITY"; then
+    SIGN_ID="$AppleIDENTITY"
+    SIGN_FLAGS=(--options runtime --timestamp=none)
+    echo "==> Signing (\$AppleIDENTITY, hardened runtime)"
+else
+    echo "==> Signing (ad-hoc, no hardened runtime: \$AppleIDENTITY not set or not in the keychain;"
+    echo "    ad-hoc pieces have no Team ID, so library validation would refuse Sparkle)"
+fi
+# Signing goes inside-out instead of --deep: Sparkle's helpers first, then
+# the framework that holds them, then the app.
+SPARKLE_FW="$APP/Contents/Frameworks/Sparkle.framework"
+sign() {
+    codesign --force --sign "$SIGN_ID" ${SIGN_FLAGS[@]+"${SIGN_FLAGS[@]}"} "$@"
+}
+sign_bundle() {
+    sign "$SPARKLE_FW/Versions/B/Autoupdate" || return 1
+    sign "$SPARKLE_FW/Versions/B/Updater.app" || return 1
+    # No XPC services ship today (removed in Vendor/); signed if they return.
+    local xpc
+    for xpc in "$SPARKLE_FW"/Versions/B/XPCServices/*.xpc; do
+        [[ -e "$xpc" ]] || continue
+        sign "$xpc" || return 1
+    done
+    sign "$SPARKLE_FW" || return 1
+    sign --entitlements SoundMix.entitlements "$APP"
+}
+# With a real identity a signing failure (locked keychain, expired cert) would
+# leave a half-signed app, so it is fatal; ad-hoc signing stays best effort.
+if ! sign_bundle; then
+    if [[ "$SIGN_ID" != "-" ]]; then
+        echo "error: code signing with \$AppleIDENTITY failed; see the codesign error above." >&2
+        exit 1
+    fi
+    echo "    (code signing failed; see the codesign error above)"
+fi
+if ! codesign --verify --deep --strict "$APP"; then
+    if [[ "$SIGN_ID" != "-" ]]; then
+        echo "error: signature verification of $APP failed." >&2
+        exit 1
+    fi
+    echo "    (signature verification failed; ad-hoc build)"
+fi
 
 echo "==> Built $APP — version $VERSION (build $BUILD_NUMBER)"
 du -sh "$APP" | sed 's/^/    /'
