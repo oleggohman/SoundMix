@@ -3,7 +3,7 @@ import Foundation
 /// The PEQdB measurement database (peqdb.com/studio), as used by the earphone
 /// picker in the profile library.
 ///
-/// How the source site works — reverse engineered, see `reverse-engineering/`:
+/// How the site's public data is laid out:
 ///
 /// * The studio HTML embeds the full catalog as `window.__INDEX__ = {...}`:
 ///   `IE`/`OE` → source → model → variant → `[offset, channelCount]`.

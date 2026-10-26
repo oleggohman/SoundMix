@@ -1,7 +1,6 @@
 # SoundMix
 
-A native macOS replacement for **Downmix Renderer 0.0.0**, rebuilt from the reverse-engineering
-findings in [`../reverse-engineering/FINDINGS.md`](../reverse-engineering/FINDINGS.md).
+A native macOS replacement for **Downmix Renderer 0.0.0**.
 
 Same job — fold an immersive bed down to a stereo pair in real time — with a correct,
 configurable downmix matrix, exact headroom maths, and a true-peak limiter instead of a

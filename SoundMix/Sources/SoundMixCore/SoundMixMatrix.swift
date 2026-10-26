@@ -190,10 +190,9 @@ public struct MatrixRecipe: Equatable, Codable, Sendable {
 
 public extension MatrixRecipe {
 
-    /// Byte-for-byte reproduction of the original renderer's compiled-in matrix,
-    /// recovered from the shipped binary: every side channel at unity, centre at
-    /// −3.01 dB, LFE at ×2.26464431 (+7.100 dB) into both outputs through a
-    /// 4th-order 125 Hz Butterworth low-pass.
+    /// Parity with the original renderer's matrix: every side channel at unity,
+    /// centre at −3.01 dB, LFE at ×2.26464431 (+7.100 dB) into both outputs
+    /// through a 4th-order 125 Hz Butterworth low-pass.
     static let parity = MatrixRecipe(
         name: "Original parity (ADC2 direct)",
         notes: "Exactly reproduces Downmix Renderer 0.0.0. Every surround and height channel sums at unity, so a full 9.1.6 bed can reach about +20 dB — use a trim or the limiter.",

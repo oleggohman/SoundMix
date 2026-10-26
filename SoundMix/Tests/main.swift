@@ -33,8 +33,8 @@ do {
     near(m[.r].right, 1.0, 1e-12, "FR → R is unity")
     near(m[.c].left, 0.70710678, 1e-7, "FC → L matches 0.70710678")
     near(m[.c].right, 0.70710678, 1e-7, "FC → R matches 0.70710678")
-    // The constant recovered from _main at 0x100002780 (0x40021DFDD6042E0D).
-    near(m[.lfe].left, 2.26464431, 1e-6, "LFE coefficient matches the binary")
+    // Parity LFE gain: ×2.26464431 (+7.100 dB).
+    near(m[.lfe].left, 2.26464431, 1e-6, "LFE coefficient matches parity")
     near(m[.lfe].right, 2.26464431, 1e-6, "LFE coefficient is the same on R")
     for ch in [BedChannel.ls, .lrs, .lw, .ltf, .ltm, .ltr] {
         near(m[ch].left, 1.0, 1e-12, "\(ch.shortName) → L is unity (original behaviour)")
